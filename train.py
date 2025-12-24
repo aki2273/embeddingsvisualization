@@ -1255,7 +1255,13 @@ def main():
         checkpoint = torch.load(best_ckpt, map_location=device)
         model.load_state_dict(checkpoint["model_state"])
 
-    val_loss, val_proba, y_val_true = predict_proba(model, val_loader, criterion, device, use_amp)
+    if args.full_gpu and x_val_gpu is not None:
+        val_loss, val_proba, y_val_true = predict_proba_gpu(
+            model, x_val_gpu, x_val_fin_gpu, y_val_gpu,
+            criterion, args.batch_size, use_amp
+        )
+    else:
+        val_loss, val_proba, y_val_true = predict_proba(model, val_loader, criterion, device, use_amp)
     best_metrics = compute_metrics(y_val_true, val_proba, classes)
 
     results = [
